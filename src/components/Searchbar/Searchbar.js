@@ -1,40 +1,50 @@
-import React from 'react';
-import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import styles from './Searchbar.module.css';
+import { ImSearch } from 'react-icons/im';
+import { toast } from 'react-toastify';
+ import 'react-toastify/dist/ReactToastify.css';
 
-const Searchbar = ({ value, onChange, children, ...allyProps }) => (
-  <>
-      <header className={styles.searchbar}>
-        <form className={styles.searchForm} >
-          <button type="submit" className={styles.button}>
-            <span className={styles.label}  {...allyProps}>{children}</span>
-          </button>
+export default class Searchbar extends Component {
+    state = {
+        searchQuery: '',
+    };
+   
+    handleSearchChange = event => {
+        this.setState({ searchQuery: event.currentTarget.value.trim() });
+    };
+        
+    handleSubmit = event => {
+        event.preventDefault();
 
-          <input
-            type='text'
-            name='searchbar'
-            autoComplete="off"
-            autoFocus
-            onChange={onChange}
-            value={value}
-            className={styles.input}
-            placeholder='Search images and photos'
-          />
-        </form>
-      </header>
-  </>
-);
+        if (this.state.searchQuery === '') {
+            toast.error('Empty request');
+            return;
+        }
+        this.props.onSubmit(this.state.searchQuery);
+        this.setState({ searchQuery: '' });
+    };
 
-Searchbar.defaultProps = {
-  value: '',
-  children: 'Search',
-};
+    render() {
+        return (
+            <header className={styles.searchbar}>
+                <form className={styles.searchForm} onSubmit={this.handleSubmit}>
+                    <button type="submit" className={styles.button}>
+                        <span className={styles.label} aria-label='Search'><ImSearch />
+                         </span>
+                    </button>
 
-Searchbar.propTypes = {
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-    'aria-label': PropTypes.string.isRequired,
-  children: PropTypes.node,
-};
-
-export default Searchbar;
+                    <input
+                        type='text'
+                        name='searchbar'
+                        autoComplete="off"
+                        autoFocus
+                        onChange={this.handleSearchChange}
+                        value={this.state.searchQuery}
+                        className={styles.input}
+                        placeholder='Search images and photos'
+                    />
+                </form>
+            </header>
+        )
+    }
+}

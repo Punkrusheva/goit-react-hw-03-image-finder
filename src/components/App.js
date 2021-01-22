@@ -8,7 +8,7 @@ import Button from './Button/Button';
 import Load from './Loader/Loader';
 import '../stylesheets/normalize.css';
 import '../stylesheets/main.css';
-import { ImSearch } from 'react-icons/im';
+import { ToastContainer } from "react-toastify";
 
 class App extends Component {
   state = {
@@ -29,27 +29,36 @@ class App extends Component {
       .then(response => this.setState({ photos: response.data.hits }))
       .finally(() => this.setState({ loading: false }));
     }, 1000);
-  }
+  };
 
   componentDidUpdate(prevProps, prevState) {
+    const nextSearch = this.state.searchQuery;
+    const prevSearch = prevState.searchQuery;
     const nextPage = this.state.page;
     const prevPage = prevState.page;
 
+    if (nextSearch !== prevSearch) {
+      this.setState({ loading: true });
+      this.setState({ photos: [] });
+      setTimeout(()=>{
+       axios
+        .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
+         .then(response => this.setState({ photos: response.data.hits }
+         ))
+         .finally(() => this.setState({ loading: false }));
+      }, 1000);
+    }
     if (nextPage !== prevPage) {
       this.setState({ loading: true });
       setTimeout(()=>{
        axios
         .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
-        .then(response => this.setState({ photos: [...prevState.photos, ...response.data.hits] }))
-        .then(window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth',
-        }))
+         .then(response => this.setState({ photos: [...prevState.photos, ...response.data.hits] }))
+         .then(window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth',}))
          .finally(() => this.setState({ loading: false }));
-      }, 1000);
-    }
-  }
-  
+      }, 1000);}
+  };
+
   toggleModal = (largeImageURL) => {
     this.setState(({ showModal }) => ({showModal: !showModal}));
     this.setState({ largeImage: largeImageURL });
@@ -58,39 +67,26 @@ class App extends Component {
   onButtonClick = e => {
     e.preventDefault();
     this.setState(
-      {page: this.state.page + 1 } 
+      { page: this.state.page + 1 }
     );
-  }
-
-  changeSearch = e => {
-    const { searchQuery } = this.state;
-    this.setState({  searchQuery : e.currentTarget.value });
-    console.log(searchQuery);
   };
 
-  getSearchedResult = () => {
-    const { photos, searchQuery } = this.state;
+  handleSearchSubmit = searchQuery => {
     const normalizedSearchQuery = searchQuery.toLowerCase().trim();
-    return photos.filter(photo =>
-      photo.tags.toLowerCase().includes(normalizedSearchQuery)
-    );
-  }
+    this.setState({ searchQuery: normalizedSearchQuery });
+   };
+ 
   render() {
-    const { searchQuery, photos, showModal, largeImage, tags } = this.state;
-    const searchedResult = this.getSearchedResult();
-    
+    const { photos, showModal, largeImage, tags } = this.state;
+
     return (
       <>
-        <Searchbar value={searchQuery}
-          aria-label='Search'
-          onChange={this.changeSearch}>
-          <ImSearch />
-        </Searchbar>
+        <Searchbar onSubmit={this.handleSearchSubmit}/> 
         
         {photos.length > 0 ?
           <ImageGallery>
             <ImageGalleryItem
-              photos={searchedResult}
+              photos={photos}
               onClick={this.toggleModal}
             />
           </ImageGallery> : null}
@@ -108,12 +104,15 @@ class App extends Component {
           width={45}
           timeout={6000}
           />}
-        
-        {searchedResult.length >= 11 ?
+      
+        {photos.length >= 11 ?
           <Button
             aria-label='Load more'
             onClick={this.onButtonClick}>
           </Button> : null}
+
+        <ToastContainer autoClose={2000}/>
+        
       </>
     );
   }
