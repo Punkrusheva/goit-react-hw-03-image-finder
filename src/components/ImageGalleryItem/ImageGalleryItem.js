@@ -12,15 +12,18 @@ function ImageGalleryItem({ photos, onClick }) {
 }
 
 ImageGalleryItem.defaultProps = {
-  original: '',
-  preview: '',
-  description: ''
+  largeImageURL: '',
+  webformatURL: '',
+  tags: '',
+  id: ''
 };
 
 ImageGalleryItem.propTypes = {
-  original: PropTypes.string,
-  preview: PropTypes.string,
-  description : PropTypes.string
+  largeImageURL: PropTypes.string,
+  webformatURL: PropTypes.string,
+  tags: PropTypes.string,
+  id: PropTypes.string,
+  onClick: PropTypes.func.isRequired,
 };
 
 export default ImageGalleryItem;

@@ -5,9 +5,10 @@ import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
 import Button from './Button/Button';
-import Loader from "react-loader-spinner";
+import Load from './Loader/Loader';
 import '../stylesheets/normalize.css';
 import '../stylesheets/main.css';
+import { ImSearch } from 'react-icons/im';
 
 class App extends Component {
   state = {
@@ -15,65 +16,50 @@ class App extends Component {
     searchQuery: '',
     page: 1,
     showModal: false,
+    loading: false,
     key: '19150755-18ebc4fb910ab3d1add5e1d5a',
+    url: 'https://pixabay.com/api/',
   };
+  
   componentDidMount() {
-        axios
-            .get(`https://pixabay.com/api/?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
-            .then(response => this.setState({ photos: response.data.hits }))
-  }
-/*
-  componentDidMount() {
-    // console.log('App componentDidMount');
-
-    const photos = localStorage.getItem('photos');
-    const parsedPhotos = JSON.parse(photos);
-
-    if (parsedPhotos) {
-      this.setState({ photos: parsedPhotos });
-    }
+    this.setState({ loading: true });
+    setTimeout(()=>{
+    axios
+      .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
+      .then(response => this.setState({ photos: response.data.hits }))
+      .finally(() => this.setState({ loading: false }));
+    }, 1000);
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // console.log('App componentDidUpdate');
+    const nextPage = this.state.page;
+    const prevPage = prevState.page;
 
-    const nextPhotos = this.state.photos;
-    const prevPhotos = prevState.photos;
-
-    if (nextPhotos !== prevPhotos) {
-      console.log('Обновилось поле photos, записываю photos в хранилище');
-      localStorage.setItem('photos', JSON.stringify(nextPhotos));
-    }
-
-    if (nextPhotos.length > prevPhotos.length && prevPhotos.length !== 0) {
-      this.toggleModal();
+    if (nextPage !== prevPage) {
+      this.setState({ loading: true });
+      setTimeout(()=>{
+       axios
+        .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
+        .then(response => this.setState({ photos: [...prevState.photos, ...response.data.hits] }))
+        .then(window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth',
+        }))
+         .finally(() => this.setState({ loading: false }));
+      }, 1000);
     }
   }
-
-*/
-  toggleModal = (largeImageURL) => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-    }));
   
+  toggleModal = (largeImageURL) => {
+    this.setState(({ showModal }) => ({showModal: !showModal}));
     this.setState({ largeImage: largeImageURL });
   };
 
   onButtonClick = e => {
-     e.preventDefault();
-    
+    e.preventDefault();
     this.setState(
       {page: this.state.page + 1 } 
     );
-    console.log('Click', this.state.page);
-   /*axios
-            .get(`https://pixabay.com/api/?q=${this.state.searchQuery}&page=${this.state.page}&key=19150755-18ebc4fb910ab3d1add5e1d5a&image_type=photo&orientation=horizontal&per_page=12`)
-     .then(response => this.setState(prevState => { return { photos: [...prevState.photos, response.data.hits] } }))
-   
-    window.scrollTo({
-  top: document.documentElement.scrollHeight,
-  behavior: 'smooth',
-});*/
   }
 
   changeSearch = e => {
@@ -92,33 +78,45 @@ class App extends Component {
   render() {
     const { searchQuery, photos, showModal, largeImage, tags } = this.state;
     const searchedResult = this.getSearchedResult();
-    console.log(searchedResult);
     
     return (
       <>
-        <Searchbar value={searchQuery} onChange={this.changeSearch} />
+        <Searchbar value={searchQuery}
+          aria-label='Search'
+          onChange={this.changeSearch}>
+          <ImSearch />
+        </Searchbar>
         
-        {photos.length > 0 ? <ImageGallery><ImageGalleryItem photos={searchedResult} onClick={this.toggleModal} /></ImageGallery> : null}
+        {photos.length > 0 ?
+          <ImageGallery>
+            <ImageGalleryItem
+              photos={searchedResult}
+              onClick={this.toggleModal}
+            />
+          </ImageGallery> : null}
         
-        {showModal && <Modal onClose={this.toggleModal} >
-          <img src={largeImage} alt={tags} />
-          <button type='button' onClick={this.toggleModal}>x</button>
-        </Modal>}
-                
-        {searchedResult.length > 11 ? <Button aria-label='Load more' onClick={this.onButtonClick}>
-          <Loader
-            type="ThreeDots"
-            color="#FFFFFF"
-            height={20}
-            width={20}
-            timeout={3000} 
-          />
-        </Button> : null}
+        {showModal &&
+          <Modal onClose={this.toggleModal}>
+          <img src={largeImage} alt={tags}/>
+          </Modal>}
+
+        {this.state.loading &&
+          <Load 
+          type="ThreeDots"
+          color="#3f51b5"
+          height={45}
+          width={45}
+          timeout={6000}
+          />}
+        
+        {searchedResult.length >= 11 ?
+          <Button
+            aria-label='Load more'
+            onClick={this.onButtonClick}>
+          </Button> : null}
       </>
     );
   }
 }
 
 export default App;
-
-/**{photos.page > 1 ? <ImageGallery><ImageGalleryItem photos={searchedResult} onClick={this.toggleModal} /></ImageGallery> : null} */
