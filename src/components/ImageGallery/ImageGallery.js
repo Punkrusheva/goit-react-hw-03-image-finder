@@ -5,7 +5,9 @@ import styles from './ImageGallery.module.css';
 
 function ImageGallery({ children }) {
     return (
-        <ul className={styles.imageGallery}>{children}</ul>
+      <ul className={styles.imageGallery}>
+        {children}
+      </ul>
     )
 }
         

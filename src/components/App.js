@@ -1,30 +1,26 @@
 import React, { Component } from 'react';
-//import Loader from './Loader/Loader';
-//import Modal from './Modal/Modal'
+import axios from 'axios';
+import Modal from './Modal/Modal'
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
-//import Button from './Button/Button';
-//import shortid from 'shortid';
-//import IconButton from './components/IconButton';
-//import { ReactComponent as AddIcon } from './icons/add.svg';
+import Button from './Button/Button';
+import Loader from "react-loader-spinner";
 import '../stylesheets/normalize.css';
 import '../stylesheets/main.css';
-import axios from 'axios';
 
 class App extends Component {
   state = {
     photos: [],
     searchQuery: '',
-    //searchQuery: 'yellow',
     page: 1,
-  //  showModal: false,
+    showModal: false,
+    key: '19150755-18ebc4fb910ab3d1add5e1d5a',
   };
   componentDidMount() {
         axios
-            .get(`https://pixabay.com/api/?q=${this.state.searchQuery}&page=${this.state.page}&key=19150755-18ebc4fb910ab3d1add5e1d5a&image_type=photo&orientation=horizontal&per_page=12`)
+            .get(`https://pixabay.com/api/?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
             .then(response => this.setState({ photos: response.data.hits }))
-            //.then(console.log(this.state.photos));
   }
 /*
   componentDidMount() {
@@ -54,67 +50,38 @@ class App extends Component {
     }
   }
 
-  addPhoto = text => {
-    const photo = {
-      id: shortid.generate(),
-      text,
-      completed: false,
-    };
-
-    this.setState(({ photos }) => ({
-      photos: [photo, ...photos],
-    }));
-
-    // this.toggleModal();
-  };
-
-  deletePhoto = photoId => {
-    this.setState(({ photos }) => ({
-      photos: photos.filter(({ id }) => id !== photoId),
-    }));
-  };
-
-  toggleCompleted = photoId => {
-    this.setState(({ photos }) => ({
-      photos: photos.map(photo =>
-        photo.id === photoId ? { ...photo, completed: !photo.completed } : photo,
-      ),
-    }));
-  };
-
-  changeFilter = e => {
-    this.setState({ filter: e.currentTarget.value });
-  };
-
-  getVisiblePhotos = () => {
-    const { filter, photos } = this.state;
-    const normalizedFilter = filter.toLowerCase();
-
-    return photos.filter(({ text }) =>
-      text.toLowerCase().includes(normalizedFilter),
-    );
-  };
-  
-  calculateCompletedPhotos = () => {
-    const { photos } = this.state;
-
-    return photos.reduce(
-      (total, photo) => (photo.completed ? total + 1 : total),
-      0,
-    );
-  };
-
-  toggleModal = () => {
+*/
+  toggleModal = (largeImageURL) => {
     this.setState(({ showModal }) => ({
       showModal: !showModal,
     }));
+  
+    this.setState({ largeImage: largeImageURL });
   };
-*/
+
+  onButtonClick = e => {
+     e.preventDefault();
+    
+    this.setState(
+      {page: this.state.page + 1 } 
+    );
+    console.log('Click', this.state.page);
+   /*axios
+            .get(`https://pixabay.com/api/?q=${this.state.searchQuery}&page=${this.state.page}&key=19150755-18ebc4fb910ab3d1add5e1d5a&image_type=photo&orientation=horizontal&per_page=12`)
+     .then(response => this.setState(prevState => { return { photos: [...prevState.photos, response.data.hits] } }))
+   
+    window.scrollTo({
+  top: document.documentElement.scrollHeight,
+  behavior: 'smooth',
+});*/
+  }
+
   changeSearch = e => {
     const { searchQuery } = this.state;
     this.setState({  searchQuery : e.currentTarget.value });
     console.log(searchQuery);
   };
+
   getSearchedResult = () => {
     const { photos, searchQuery } = this.state;
     const normalizedSearchQuery = searchQuery.toLowerCase().trim();
@@ -123,18 +90,30 @@ class App extends Component {
     );
   }
   render() {
-    //const {  showModal } = this.state;//filter,photos
-    //const totalPhotoCount = photos.length;
-    //const completedPhotoCount = this.calculateCompletedPhotos();
+    const { searchQuery, photos, showModal, largeImage, tags } = this.state;
     const searchedResult = this.getSearchedResult();
-    console.log(this.state.photos);
-    //const searchQuery = this.state.searchQuery;
-
+    console.log(searchedResult);
+    
     return (
       <>
-        <Searchbar value={this.state.searchQuery} onChange={this.changeSearch} />
-        {this.state.photos.length > 0 ? <ImageGallery><ImageGalleryItem photos={searchedResult} /></ImageGallery> : null}
-
+        <Searchbar value={searchQuery} onChange={this.changeSearch} />
+        
+        {photos.length > 0 ? <ImageGallery><ImageGalleryItem photos={searchedResult} onClick={this.toggleModal} /></ImageGallery> : null}
+        
+        {showModal && <Modal onClose={this.toggleModal} >
+          <img src={largeImage} alt={tags} />
+          <button type='button' onClick={this.toggleModal}>x</button>
+        </Modal>}
+                
+        {searchedResult.length > 11 ? <Button aria-label='Load more' onClick={this.onButtonClick}>
+          <Loader
+            type="ThreeDots"
+            color="#FFFFFF"
+            height={20}
+            width={20}
+            timeout={3000} 
+          />
+        </Button> : null}
       </>
     );
   }
@@ -142,16 +121,4 @@ class App extends Component {
 
 export default App;
 
-/*{{ searchQuery } !== '' && (
-          <Loader />)}
-        <IconButton onClick={this.toggleModal} aria-label="Добавить photo">
-          <AddIcon width="40" height="40" fill="#fff" />
-        </IconButton> 
-        <Filter value={filter} onChange={this.changeFilter} />
-
-        <PhotoList
-          photos={visiblePhotos}
-          onDeletePhoto={this.deletePhoto}
-          onToggleCompleted={this.toggleCompleted}
-        />*/
-        //<Modal>HHHHH</Modal>
+/**{photos.page > 1 ? <ImageGallery><ImageGalleryItem photos={searchedResult} onClick={this.toggleModal} /></ImageGallery> : null} */

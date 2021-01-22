@@ -2,12 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import styles from './ImageGalleryItem.module.css';
 
-function ImageGalleryItem({ photos }) {
+function ImageGalleryItem({ photos, onClick }) {
     return (
         photos.map(({ largeImageURL, webformatURL, tags, id }) => (
-     <li className={styles.item} key={id}>
-            <a className={styles.link} href={largeImageURL} target="_blank" rel="noreferrer noopener"><img className={styles.image} src={webformatURL} data-source={largeImageURL} alt={tags}/>
-        </a>
+     <li className={styles.item} key={id} onClick={() => onClick(largeImageURL)}>
+            <img className={styles.image} src={webformatURL} data-source={largeImageURL} alt={tags} />
     </li>
   )))
 }
