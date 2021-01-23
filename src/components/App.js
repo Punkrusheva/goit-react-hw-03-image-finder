@@ -36,26 +36,31 @@ class App extends Component {
     const prevSearch = prevState.searchQuery;
     const nextPage = this.state.page;
     const prevPage = prevState.page;
+    var scrollHeight = Math.max(
+  document.body.scrollHeight, document.documentElement.scrollHeight,
+  document.body.offsetHeight, document.documentElement.offsetHeight,
+  document.body.clientHeight, document.documentElement.clientHeight
+    );
+    console.log(scrollHeight);
 
     if (nextSearch !== prevSearch) {
       this.setState({ loading: true });
       this.setState({ photos: [] });
       setTimeout(()=>{
-       axios
-        .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
-         .then(response => this.setState({ photos: response.data.hits }
-         ))
-         .finally(() => this.setState({ loading: false }));
+        axios
+          .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
+          .then(response => this.setState({ photos: response.data.hits }
+          ))
+          .finally(() => this.setState({ loading: false }));
       }, 1000);
     }
     if (nextPage !== prevPage) {
       this.setState({ loading: true });
       setTimeout(()=>{
-       axios
-        .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
-         .then(response => this.setState({ photos: [...prevState.photos, ...response.data.hits] }))
-         .then(window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth',}))
-         .finally(() => this.setState({ loading: false }));
+        axios
+          .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
+          .then(response => this.setState({ photos: [...prevState.photos, ...response.data.hits] }))
+          .finally(() => { this.setState({ loading: false }); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth', }) });
       }, 1000);}
   };
 
@@ -112,7 +117,6 @@ class App extends Component {
           </Button> : null}
 
         <ToastContainer autoClose={2000}/>
-        
       </>
     );
   }
