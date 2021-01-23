@@ -19,6 +19,7 @@ class App extends Component {
     loading: false,
     key: '19150755-18ebc4fb910ab3d1add5e1d5a',
     url: 'https://pixabay.com/api/',
+    error: null,
   };
   
   componentDidMount() {
@@ -27,6 +28,7 @@ class App extends Component {
     axios
       .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
       .then(response => this.setState({ photos: response.data.hits }))
+      .catch(error=> this.setState({error}))
       .finally(() => this.setState({ loading: false }));
     }, 1000);
   };
@@ -76,12 +78,12 @@ class App extends Component {
    };
  
   render() {
-    const { photos, showModal, largeImage, tags } = this.state;
+    const { photos, showModal, largeImage, tags, error } = this.state;
 
     return (
       <>
         <Searchbar onSubmit={this.handleSearchSubmit}/> 
-        
+        {error && <h1>Error, try again later</h1>}
         {photos.length > 0 ?
           <ImageGallery>
             <ImageGalleryItem
