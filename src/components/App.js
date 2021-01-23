@@ -36,12 +36,6 @@ class App extends Component {
     const prevSearch = prevState.searchQuery;
     const nextPage = this.state.page;
     const prevPage = prevState.page;
-    var scrollHeight = Math.max(
-  document.body.scrollHeight, document.documentElement.scrollHeight,
-  document.body.offsetHeight, document.documentElement.offsetHeight,
-  document.body.clientHeight, document.documentElement.clientHeight
-    );
-    console.log(scrollHeight);
 
     if (nextSearch !== prevSearch) {
       this.setState({ loading: true });
