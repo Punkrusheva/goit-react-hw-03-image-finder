@@ -3,7 +3,6 @@ import axios from 'axios';
 import Modal from './Modal/Modal'
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
-import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
 import Button from './Button/Button';
 import Load from './Loader/Loader';
 import '../stylesheets/normalize.css';
@@ -20,17 +19,16 @@ class App extends Component {
     key: '19150755-18ebc4fb910ab3d1add5e1d5a',
     url: 'https://pixabay.com/api/',
     error: null,
+    status: "idle",
   };
   
   componentDidMount() {
     this.setState({ loading: true });
-    setTimeout(()=>{
     axios
-      .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
+      .get(`${this.state.url}?page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
       .then(response => this.setState({ photos: response.data.hits }))
       .catch(error=> this.setState({error}))
       .finally(() => this.setState({ loading: false }));
-    }, 1000);
   };
 
   componentDidUpdate(prevProps, prevState) {
@@ -40,24 +38,25 @@ class App extends Component {
     const prevPage = prevState.page;
 
     if (nextSearch !== prevSearch) {
-      this.setState({ loading: true });
-      this.setState({ photos: [] });
-      setTimeout(()=>{
-        axios
+      this.setState({ loading: true, photos: []});
+      
+      axios
           .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
           .then(response => this.setState({ photos: response.data.hits }
           ))
+          .catch(error=> this.setState({error}))
           .finally(() => this.setState({ loading: false }));
-      }, 1000);
+      
     }
     if (nextPage !== prevPage) {
       this.setState({ loading: true });
-      setTimeout(()=>{
+
         axios
           .get(`${this.state.url}?q=${this.state.searchQuery}&page=${this.state.page}&key=${this.state.key}&image_type=photo&orientation=horizontal&per_page=12`)
           .then(response => this.setState({ photos: [...prevState.photos, ...response.data.hits] }))
+          .catch(error=> this.setState({error}))
           .finally(() => { this.setState({ loading: false }); window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth', }) });
-      }, 1000);}
+    }
   };
 
   toggleModal = (largeImageURL) => {
@@ -79,17 +78,15 @@ class App extends Component {
  
   render() {
     const { photos, showModal, largeImage, tags, error } = this.state;
-
     return (
       <>
         <Searchbar onSubmit={this.handleSearchSubmit}/> 
         {error && <h1>Error, try again later</h1>}
+       
         {photos.length > 0 ?
-          <ImageGallery>
-            <ImageGalleryItem
+          <ImageGallery
               photos={photos}
-              onClick={this.toggleModal}
-            />
+              onClick={this.toggleModal}>
           </ImageGallery> : null}
         
         {showModal &&
